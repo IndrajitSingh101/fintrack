@@ -85,8 +85,7 @@ async def ocrContent(tempFile):
 
 
 async def uploadFileToAWS(temp_file):
-    keyVaultName = os.environ["fintrack-key"]
-    KVUri = f"https://{keyVaultName}.vault.azure.net"
+    KVUri = f"https://fintrack-key.vault.azure.net"
     credential = DefaultAzureCredential()
     client = SecretClient(vault_url=KVUri, credential=credential)
     ACCESS_KEY = client.get_secret('S3ACCESSKEY')
