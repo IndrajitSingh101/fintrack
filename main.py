@@ -85,21 +85,22 @@ async def ocrContent(tempFile):
 
 
 def uploadFileToAWS(temp_file):
-    KVUri = f"https://fintrack-key.vault.azure.net"
-    credential = DefaultAzureCredential()
-    client = SecretClient(vault_url=KVUri, credential=credential)
-    ACCESS_KEY = client.get_secret('S3ACCESSKEY')
-    SECRET_KEY = client.get_secret('S3SECRETKEY')
-    bucket = 'fintrack-images'
-    s3 = boto3.client('s3', aws_access_key_id=ACCESS_KEY.value,
-                      aws_secret_access_key=SECRET_KEY.value)
+
     try:
+        KVUri = f"https://fintrack-key.vault.azure.net"
+        credential = DefaultAzureCredential()
+        client = SecretClient(vault_url=KVUri, credential=credential)
+        ACCESS_KEY = client.get_secret('S3ACCESSKEY')
+        SECRET_KEY = client.get_secret('S3SECRETKEY')
+        bucket = 'fintrack-images'
+        s3 = boto3.client('s3', aws_access_key_id=ACCESS_KEY.value,
+                          aws_secret_access_key=SECRET_KEY.value)
         s3.upload_file(temp_file, bucket, temp_file)
         print("Upload Successful")
         return True
     except FileNotFoundError:
         print("The file was not found")
-        return False
+        raise
     except NoCredentialsError:
         print("Credentials not available")
-        return False
+        raise
