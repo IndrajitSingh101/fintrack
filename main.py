@@ -2,12 +2,15 @@ import time
 from typing import Optional, List
 from fastapi import FastAPI, File, UploadFile
 from fastapi.responses import HTMLResponse
-
+import logging
+from opencensus.ext.azure.log_exporter import AzureLogHandler
 import ocr
 import utils
 
+logger = logging.getLogger(__name__)
+logger.setLevel(10)
 app = FastAPI()
-
+logger.addHandler(AzureLogHandler(connection_string='InstrumentationKey=1c37da42-ac0f-4f4a-b5a5-c47c5eedbe52'))
 
 @app.get("/")
 def read_root():
@@ -36,7 +39,7 @@ async def create_upload_files(files: List[UploadFile] = File(...)):
     response = {}
     s = time.time()
     for img in files:
-        print("Images Uploaded: ", img.filename)
+        logger.info('Images Uploaded: '+img.filename)
         temp_file = utils._save_file_to_server(img, path="./", save_as=img.filename)
         text = await ocr.read_image(temp_file)
         response[img.filename] = text
