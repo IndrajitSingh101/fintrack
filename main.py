@@ -53,7 +53,7 @@ async def create_upload_files(files: List[UploadFile] = File(...)):
     r = False
     for img in files:
         logger.info('Images Uploaded: ' + img.filename)
-        temp_file = utils._save_file_to_server(img, path="./", save_as=img.filename)
+        temp_file = utils._save_file_to_server(img, path="", save_as=img.filename)
         r = uploadFileToAWS(temp_file)
     return r
 
@@ -84,7 +84,7 @@ async def ocrContent(tempFile):
     print()
 
 
-async def uploadFileToAWS(temp_file):
+def uploadFileToAWS(temp_file):
     KVUri = f"https://fintrack-key.vault.azure.net"
     credential = DefaultAzureCredential()
     client = SecretClient(vault_url=KVUri, credential=credential)
@@ -94,7 +94,7 @@ async def uploadFileToAWS(temp_file):
     s3 = boto3.client('s3', aws_access_key_id=ACCESS_KEY.value,
                       aws_secret_access_key=SECRET_KEY.value)
     try:
-        await s3.upload_file(temp_file, bucket, temp_file)
+        s3.upload_file(temp_file, bucket, temp_file)
         print("Upload Successful")
         return True
     except FileNotFoundError:
