@@ -1,64 +1,14 @@
-import time
-from typing import Optional, List
-from fastapi import FastAPI, File, UploadFile
-from fastapi.responses import HTMLResponse
-import logging
-import boto3
-import utils
+from fastapi import FastAPI
 from mangum import Mangum
+from v1.routers import router
 
-logger = logging.getLogger(__name__)
-logger.setLevel(10)
-app = FastAPI()
+app = FastAPI(title='ocr', description='ocr tech')
+app.include_router(router, prefix="/v1")
 
 
 @app.get("/")
 def read_root():
-    content = """
-    <body>
-    <form action="/uploadfile/" enctype="multipart/form-data" method="post">
-    <input name="files" type="file" multiple>
-    <input type="submit">
-    </form>
-    </body>
-        """
-    return HTMLResponse(content=content)
-
-
-@app.post("/uploadfile/")
-async def analyse_file(files: List[UploadFile] = File(...)):
-    logger.info("started")
-    response = {}
-    s = time.time()
-    r = False
-    text = ""
-    for img in files:
-        logger.info('Images Uploaded: ' + img.filename)
-        temp_file = utils._save_file_to_server(img, path="", save_as=img.filename)
-        byte_data = utils._get_image_bytes(temp_file)
-        # Amazon Textract client
-        textract = boto3.client('textract')
-        # Amazon Comprehend client
-        comprehend = boto3.client('comprehend')
-
-        # Call Amazon Textract
-        response = textract.detect_document_text(Document={'Bytes': byte_data})
-        # Print detected text
-        for item in response["Blocks"]:
-            if item["BlockType"] == "LINE":
-                print('\033[94m' + item["Text"] + '\033[0m')
-                text = text + item["Text"]
-        # Detect sentiment
-        sentiment = comprehend.detect_sentiment(LanguageCode="en", Text=text)
-        print("\nSentiment\n========\n{}".format(sentiment.get('Sentiment')))
-
-        # Detect entities
-        entities = comprehend.detect_entities(LanguageCode="en", Text=text)
-        print("\nEntities\n========")
-        for entity in entities["Entities"]:
-            print("{}\t=>\t{}".format(entity["Type"], entity["Text"]))
-
-        return response
+    return {"Hello Medium Reader": "from FastAPI & API Gateway"}
 
 
 # async def ocrContent(tempFile):

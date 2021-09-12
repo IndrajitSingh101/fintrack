@@ -37,7 +37,7 @@ jobs:
           zip -r9 ../../../../api.zip .
       # Optional: Add step to run tests here (PyTest, Django test suites, etc.)
       - name: Add App to Zip file
-        run: ls -la && cd . && zip -g ../api.zip -r .
+        run: ls -la && cd ./api && zip -g ../api.zip -r .
       - name: Upload artifact for deployment jobs
         uses: actions/upload-artifact@v2
         with:
