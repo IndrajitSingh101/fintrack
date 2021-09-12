@@ -29,16 +29,19 @@ jobs:
       
       - name: Install dependencies
         run: pip install -r requirements.txt
-        
+
+      - name: Create Zipfile archive of Dependencies
+        run: |
+          cd ./venv/lib/python3.8/site-packages
+          zip -r9 ../../../../api.zip .
       # Optional: Add step to run tests here (PyTest, Django test suites, etc.)
-      
+      - name: Add App to Zip file
+        run: cd . && zip -g ../api.zip -r .
       - name: Upload artifact for deployment jobs
         uses: actions/upload-artifact@v2
         with:
-          name: python-app
-          path: |
-            . 
-            !venv/
+          name: api
+          path: api.zip
 
   deploy:
     runs-on: ubuntu-latest
@@ -48,16 +51,32 @@ jobs:
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
 
     steps:
+      # Step 1
+      - name: Install AWS CLI
+        uses: unfor19/install-aws-cli-action@v1
+        with:
+          version: 1
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+
       - name: Download artifact from build job
         uses: actions/download-artifact@v2
         with:
-          name: python-app
-          path: .
+          name: api
           
-      - name: 'Deploy to Azure Web App'
-        uses: azure/webapps-deploy@v2
-        id: deploy-to-webapp
-        with:
-          app-name: 'fintrack-api'
-          slot-name: 'Production'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_EE6AAF2BD0BD484AA7E49AD8AD3C37A7 }}
+      - name: Upload to S3
+        run: aws s3 cp api.zip s3://fintrack-api/api.zip
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+
+      # Step 4
+      - name: Deploy new Lambda
+        run: aws lambda update-function-code --function-name fintrack-api --s3-bucket fintrack-api --s3-key api.zip
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}

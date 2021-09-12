@@ -10,3 +10,10 @@ def _save_file_to_server(uploaded_file, path=".", save_as="default"):
         shutil.copyfileobj(uploaded_file.file, buffer)
 
     return temp_file
+
+
+def _get_image_bytes(document_name):
+    # Read document content
+    with open(document_name, 'rb') as document:
+        return bytearray(document.read())
+
