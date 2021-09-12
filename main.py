@@ -60,6 +60,7 @@ async def analyse_file(files: List[UploadFile] = File(...)):
 
         return response
 
+
 # async def ocrContent(tempFile):
 #     filePath = 'https://fintrack-images.s3.ap-south-1.amazonaws.com/'.join(tempFile)
 #     read_response = computervision_client.read(filePath,
