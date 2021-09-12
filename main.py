@@ -6,18 +6,17 @@ from fastapi.responses import HTMLResponse
 import logging
 from azure.cognitiveservices.vision.computervision import ComputerVisionClient
 from azure.cognitiveservices.vision.computervision.models import OperationStatusCodes
-from azure.cognitiveservices.vision.computervision.models import VisualFeatureTypes
 from msrest.authentication import CognitiveServicesCredentials
 import boto3
 from botocore.exceptions import NoCredentialsError
 from azure.keyvault.secrets import SecretClient
-from azure.identity import DefaultAzureCredential
+from azure.identity import ClientSecretCredential
 import utils
 
 # accessing the key vault
-
-
-
+tenant_id = "a88de904-b21e-4496-b686-612d73f48b51"
+client_id = "26a2e989-ab72-4c0c-85d2-5c6fa4950135"
+client_secret = "Z4PwV2C8kv2~4~-Nu_PNVl.YJ3vFw6xTV."
 
 subscription_key = "3daa44e536e84a0d9a8069d59421efc3"
 endpoint = "https://fintrack-computer-vision.cognitiveservices.azure.com/"
@@ -88,8 +87,8 @@ def uploadFileToAWS(temp_file):
 
     try:
         KVUri = f"https://fintrack-key.vault.azure.net"
-        credential = DefaultAzureCredential()
-        client = SecretClient(vault_url=KVUri, credential=credential)
+        app_credentials = ClientSecretCredential(tenant_id, client_id, client_secret)
+        client = SecretClient(vault_url=KVUri, credential=app_credentials)
         ACCESS_KEY = client.get_secret('S3ACCESSKEY')
         SECRET_KEY = client.get_secret('S3SECRETKEY')
         bucket = 'fintrack-images'
