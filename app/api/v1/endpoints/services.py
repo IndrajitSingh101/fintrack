@@ -7,7 +7,7 @@ from . import utils
 router = APIRouter()
 
 
-@router.get("/")
+@router.post("/")
 async def analyse_file(files: List[UploadFile] = File(...)):
     response = {}
     s = time.time()
